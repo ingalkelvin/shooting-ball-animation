@@ -1,0 +1,303 @@
+<!doctype html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<center><canvas id= "canvas" width="1000" height="500"></canvas>
+
+	<br>
+	<script src="bathTub.js"> </script>
+	<br>
+	
+	<input type = "button" value="Start" onclick="StartGame()">
+	<br>
+	<br>
+	<textarea id="log"></textarea>
+	<textarea id="timelog"></textarea>
+	<textarea id="missedlog"></textarea>
+	<br>
+	<input type = "button" value="Play Another Game" onclick="resetGame()">
+	</center>
+
+	<script src="utils.js"> </script>
+	<script src = "ball.js"></script>
+	
+		<script>
+
+		var reset = false, start = false;
+
+		function resetGame() {
+
+			start = false;
+			reset = true;
+		}
+
+		function StartGame() {
+
+			start = true;
+		}
+			window.onload = function() {
+
+				var canvas = document.getElementById("canvas");
+				var context = canvas.getContext('2d');
+				var bathTub = new BathTub();
+				var door = new Door();
+				var mouse = utils.captureMouse(canvas);
+				var miliseconds = 0, second = 0, minutes = 0, hours = 0;  
+
+				var array = [];
+         		var numBalls = 0, maxBall = 30;
+         		var ball, newBall;
+
+         		var ballTemp = new Ball(40, "Transparent");
+
+         		var flagOnes = false;
+         		
+				door.x=canvas.width-door.width;
+				door.y = 10;
+
+				bathTub.x = canvas.width/2- bathTub.width/2+100;
+				bathTub.y = 400;
+				var score = 0;
+				var ax = 0, ay = 0;
+				ballTemp.x = bathTub.x+230;
+	            ballTemp.y = bathTub.y-200;
+	            var missed = 0;
+	            var blackFlag = false;
+
+	            var counter = 0;
+	            var randRadius = [15,25,30,35];
+
+				function changeColor() {
+					
+					var num = [1,2,3,4,5,6,7,8,9,10];
+
+					var letter = "0123456789ABCDEF".split('');
+					var color = "#";
+					for(var x=0; x<6; x++) {
+						color += letter[Math.round(Math.random()*15)];
+					}
+
+					if(num[Math.round(Math.random()*9)]==10)
+					{
+						return color = "black";
+					}
+
+					return color;
+				}
+
+				function createBall() {
+         			
+	            	ball = new Ball(randRadius[Math.round(Math.random()*randRadius.length-1)], changeColor());
+	            	ball.id = numBalls++;
+	            	ball.miss = false;
+	            	ball.x = bathTub.x+230;
+	            	ball.y = bathTub.y-200;
+	            	ball.vx = Math.random() * -2 - 1.5;
+	            	ball.vy = Math.random() * -2 - 1.5;
+	            	array.push(ball);
+	            	counter++;
+	            	return ball;
+         			
+         		}
+
+         		newBall = createBall();
+
+        		 function draw (ball) {
+
+        		
+					ball.vx += ax;
+        			ball.vy += ay;
+        		 	
+        		 
+					if(missed < 10 && start)
+					{
+						ball.x += ball.vx;
+						ball.y += ball.vy;
+					}
+					
+
+			
+					for(var i = 0 ; i<array.length; i++) {
+							var dx = array[i].x - ball.x, dy = array[i].y - ball.y;
+							var dist = Math.sqrt(dx * dx + dy * dy);
+
+							if(dist < (array[i].radius+ball.radius) && ball.color != "Transparent" && ball.id != array[i].id)
+							{
+								ball.vx *= -1;
+								ball.vy *= -1;
+							}	
+					}
+					canvas.addEventListener('click', function(event) {
+						
+						if(utils.containsPoint(ball.getBounds(),mouse.x, mouse.y) && ball.color != "Transparent" && counter >= 5 && missed < 10)  {
+
+							if(ball.color == "black") {
+            					missed = 11;
+            					blackFlag = true;
+            				}
+            				ball.color = "Transparent";
+            				score++;
+            				ax += 0.01;
+            				ay += 0.01;
+            				missed--;
+                        }
+                        else if(counter >= 5 && missed < 10) {
+                        	if(!flagOnes)
+                        	{
+                        		missed += 1;
+                        		flagOnes = true;
+                        	}
+						}
+
+         			}, false);
+
+					flagOnes = false;
+
+         			if(ball.x+ball.radius > canvas.width || ball.x-ball.radius < 0) {
+						ball.vx *= -1;
+						ax *= -1;
+
+					}
+
+					if(ball.y+ball.radius > canvas.height || ball.y-ball.radius < 0) {
+						ball.vy *= -1;
+						ay *= -1;
+					}
+
+					if((ball.x-ball.radius > canvas.width || ball.x+ball.radius < 0) && ball.miss != true && ball.color != "black" ) {
+						
+						ball.miss = true;
+						missed++;
+						
+					}
+
+					if((ball.y-ball.radius > canvas.height || ball.y+ball.radius < 0)  && ball.miss != true && ball.color != "black") {
+						
+						ball.miss = true;
+						missed++;
+
+					}
+
+					ball.draw(context);
+       			}
+
+       	function displayTime() {
+
+
+       		miliseconds++;
+
+       		if(miliseconds >= 60) {
+
+       			if(numBalls < maxBall && missed < 10)
+       			{
+       				var flag = false;
+     				for(var i=0; i<array.length; i++) {
+     					if (utils.intersects(ballTemp.getBounds(), array[i].getBounds())) {
+     						flag = true;
+     						break;	
+     					}
+     				}
+     				if(!flag) {
+     					newBall = createBall();
+     				}		
+       			}
+       			miliseconds = 0;
+       			second++;
+
+       		}
+       		if(second >= 60) {
+       			second = 0;
+       			minutes++;
+       		}
+       		if(minutes >= 60) {
+
+       			minutes = 0;
+       			hours++;
+       		}
+
+       		var time = "";
+       		time +=  (hours > 9) ? "":"0";
+       		time += hours+":";
+       		time +=  (minutes > 9) ? "":"0";
+       		time += minutes+":";
+       		time +=  (second > 9) ? "":"0";
+       		time += second+":";
+       		time +=  (miliseconds > 9) ? "":"0";
+       		time += miliseconds;
+    
+
+       		timelog.value = "Time: "+time;
+       	}   
+
+	
+		(function drawFrame() {
+
+		            window.requestAnimationFrame(drawFrame, canvas);
+		            context.clearRect(0, 0, canvas.width, canvas.height);
+
+		            if(reset) {
+		            	
+		            	array.splice(0,array.length);
+		            	newBall = createBall();
+		            	miliseconds = second = minutes = hours = 0;
+		            	score = 0;
+		            	missed = 0;
+		            	blackFlag = false;
+		            	numBalls = 0;	
+		            	ax = ay = 0;
+		            	counter = 0;
+		            	reset = false;
+		            }
+
+
+		            if(score != maxBall && missed < 10 && start)
+		            {
+		            	displayTime();
+		            }
+		       
+		           	if(counter == 5) {
+
+		           		miliseconds = second = minutes = hours = 0;
+		           		counter++;
+
+		           	}
+		            
+		            if(missed < 10)
+		            {
+		            	 log.value = (counter >= 5) ? "Score: "+score : "Wait 5 ball before you can start to pop";
+		            }
+		            else {
+
+		            	log.value = "Game Over!\nFinal Score:"+score;
+		            }
+		           
+		           	if(blackFlag)
+		           	{
+		           		missedlog.value = "You Pop the black Ball so its over!";
+		           	}
+		           	else {
+		            	missedlog.value = "Missed: "+missed;
+		           	
+		           	}
+
+		            door.draw(context);
+		            bathTub.draw(context);
+					array.forEach(draw);
+					
+		        	context.beginPath();
+            		context.arc(mouse.x,mouse.y,5,0,(Math.PI*2),true);
+            		context.arc(mouse.x,mouse.y,10,0,(Math.PI*2),true);
+            		context.arc(mouse.x,mouse.y,20,0,(Math.PI*2),true);
+            		context.stroke();  
+						
+            
+		}());
+	};
+
+		
+	</script>
+</body>
+</html>

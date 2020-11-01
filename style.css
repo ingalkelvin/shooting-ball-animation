@@ -1,0 +1,23 @@
+body {
+background-color:#660064;
+
+}
+#canvas {
+background-color:#abcdef;
+
+}
+
+p {
+color: #ff0000;
+}
+
+h1 {
+color: #98FB98;
+}
+
+h3 {
+color: #98FB98;
+}
+
+input { font-size: 17px; }
+textarea { font-size: 17px; }
