@@ -11,10 +11,6 @@ flappy ball is a javascript animation program
 
 The game is very simple to play. the player need to click all the ball that coming out in the bath 
 
-# paypal
+# Website
 
-paypal.me/kelvin.ynggal@gmail.com
-
-# BTC
-
-3LKLWWts1yTwPNYELkg1dokPpLkLnToDkF
+https://kelvin-ingal-dev-ed.my.site.com/
